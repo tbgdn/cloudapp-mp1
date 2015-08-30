@@ -1,5 +1,5 @@
-import java.io.File;
-import java.lang.reflect.Array;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -53,8 +53,48 @@ public class MP1 {
         String[] ret = new String[20];
        
         //TODO
-
-        return ret;
+		int currentLine = 0;
+		int processingIndex = 0;
+		List<Integer> processedLines = Arrays.asList(getIndexes());
+		Collections.sort(processedLines);
+		List<String> ignoredWords = Arrays.asList(stopWordsArray);
+		Map<String, Integer> wordsVsCount = new TreeMap<String, Integer>();
+		BufferedReader reader = new BufferedReader(new FileReader(this.inputFileName));
+		String line = reader.readLine();
+		while (line != null){
+			while (processingIndex < processedLines.size() && currentLine == processedLines.get(processingIndex)){
+				StringTokenizer tokenizer = new StringTokenizer(line, delimiters);
+				while(tokenizer.hasMoreTokens()){
+					String word = tokenizer.nextToken().toLowerCase().trim();
+					if (!ignoredWords.contains(word)){
+						int count = 1;
+						if (wordsVsCount.containsKey(word)){
+							count = wordsVsCount.get(word) + 1;
+						}
+						wordsVsCount.put(word, count);
+					}
+				}
+				processingIndex ++;
+			}
+			line = reader.readLine();
+			currentLine ++;
+		}
+		List<Integer> counts = new ArrayList<Integer>(wordsVsCount.values());
+		Collections.sort(counts, new Comparator<Integer>() {
+			@Override
+			public int compare(Integer o1, Integer o2) {
+				return -1 * o1.compareTo(o2);
+			}
+		});
+		List<Integer> top20 = counts.subList(0, 20);
+		for (String word: wordsVsCount.keySet()){
+			int wordCount = wordsVsCount.get(word);
+			if (top20.contains(wordCount)){
+				ret[top20.indexOf(wordCount)] = word;
+				top20.set(top20.indexOf(wordCount), Integer.MIN_VALUE);
+			}
+		}
+		return ret;
     }
 
     public static void main(String[] args) throws Exception {
